@@ -5,16 +5,12 @@ import (
 	"testing"
 )
 
-func emptyValidation(original string, num uint64, isNum bool) error {
-	return nil
+func extstr(s string) versionExtension {
+	return versionExtension{s, 0, false}
 }
 
-func extstr(s string) VersionExtension {
-	return VersionExtension{s, 0, false}
-}
-
-func extnum(i uint64) VersionExtension {
-	return VersionExtension{strconv.FormatUint(i, 10), i, true}
+func extnum(i uint64) versionExtension {
+	return versionExtension{strconv.FormatUint(i, 10), i, true}
 }
 
 type formatTest struct {
@@ -25,19 +21,19 @@ type formatTest struct {
 var formatTests = []formatTest{
 	{Version{1, 2, 3, nil, nil}, "1.2.3"},
 	{Version{0, 0, 1, nil, nil}, "0.0.1"},
-	{Version{0, 0, 1, []VersionExtension{extstr("alpha"), extstr("preview")}, []VersionExtension{extnum(123), extnum(456)}}, "0.0.1-alpha.preview+123.456"},
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extnum(1)}, []VersionExtension{extnum(123), extnum(456)}}, "1.2.3-alpha.1+123.456"},
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extnum(1)}, nil}, "1.2.3-alpha.1"},
-	{Version{1, 2, 3, nil, []VersionExtension{extnum(123), extnum(456)}}, "1.2.3+123.456"},
+	{Version{0, 0, 1, []versionExtension{extstr("alpha"), extstr("preview")}, []versionExtension{extnum(123), extnum(456)}}, "0.0.1-alpha.preview+123.456"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extnum(1)}, []versionExtension{extnum(123), extnum(456)}}, "1.2.3-alpha.1+123.456"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extnum(1)}, nil}, "1.2.3-alpha.1"},
+	{Version{1, 2, 3, nil, []versionExtension{extnum(123), extnum(456)}}, "1.2.3+123.456"},
 	// Prereleases and build metadata hyphens
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extstr("b-eta")}, []VersionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3-alpha.b-eta+123.b-uild"},
-	{Version{1, 2, 3, nil, []VersionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3+123.b-uild"},
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extstr("b-eta")}, nil}, "1.2.3-alpha.b-eta"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extstr("b-eta")}, []versionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3-alpha.b-eta+123.b-uild"},
+	{Version{1, 2, 3, nil, []versionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3+123.b-uild"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extstr("b-eta")}, nil}, "1.2.3-alpha.b-eta"},
 }
 
 var tolerantFormatTests = []formatTest{
 	{Version{1, 2, 3, nil, nil}, "v1.2.3"},
-	{Version{1, 2, 0, []VersionExtension{extstr("alpha")}, nil}, "1.2.0-alpha"},
+	{Version{1, 2, 0, []versionExtension{extstr("alpha")}, nil}, "1.2.0-alpha"},
 	{Version{1, 2, 0, nil, nil}, "1.2.00"},
 	{Version{1, 2, 3, nil, nil}, "	1.2.3 "},
 	{Version{1, 2, 3, nil, nil}, "01.02.03"},
@@ -103,14 +99,14 @@ func TestValidate(t *testing.T) {
 var finalizeVersionMethod = []formatTest{
 	{Version{1, 2, 3, nil, nil}, "1.2.3"},
 	{Version{0, 0, 1, nil, nil}, "0.0.1"},
-	{Version{0, 0, 1, []VersionExtension{extstr("alpha"), extstr("preview")}, []VersionExtension{extnum(123), extnum(456)}}, "0.0.1"},
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extnum(1)}, []VersionExtension{extnum(123), extnum(456)}}, "1.2.3"},
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extnum(1)}, nil}, "1.2.3"},
-	{Version{1, 2, 3, nil, []VersionExtension{extnum(123), extnum(456)}}, "1.2.3"},
+	{Version{0, 0, 1, []versionExtension{extstr("alpha"), extstr("preview")}, []versionExtension{extnum(123), extnum(456)}}, "0.0.1"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extnum(1)}, []versionExtension{extnum(123), extnum(456)}}, "1.2.3"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extnum(1)}, nil}, "1.2.3"},
+	{Version{1, 2, 3, nil, []versionExtension{extnum(123), extnum(456)}}, "1.2.3"},
 	// Prereleases and build metadata hyphens
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extstr("b-eta")}, []VersionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3"},
-	{Version{1, 2, 3, nil, []VersionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3"},
-	{Version{1, 2, 3, []VersionExtension{extstr("alpha"), extstr("b-eta")}, nil}, "1.2.3"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extstr("b-eta")}, []versionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3"},
+	{Version{1, 2, 3, nil, []versionExtension{extnum(123), {VersionStr: "b-uild"}}}, "1.2.3"},
+	{Version{1, 2, 3, []versionExtension{extstr("alpha"), extstr("b-eta")}, nil}, "1.2.3"},
 }
 
 func TestFinalizeVersionMethod(t *testing.T) {
@@ -146,17 +142,17 @@ var compareTests = []compareTest{
 	{Version{2, 1, 0, nil, nil}, Version{2, 1, 1, nil, nil}, -1},
 
 	// Spec Examples #9
-	{Version{1, 0, 0, nil, nil}, Version{1, 0, 0, []VersionExtension{extstr("alpha")}, nil}, 1},
-	{Version{1, 0, 0, []VersionExtension{extstr("alpha")}, nil}, Version{1, 0, 0, []VersionExtension{extstr("alpha"), extnum(1)}, nil}, -1},
-	{Version{1, 0, 0, []VersionExtension{extstr("alpha"), extnum(1)}, nil}, Version{1, 0, 0, []VersionExtension{extstr("alpha"), extstr("beta")}, nil}, -1},
-	{Version{1, 0, 0, []VersionExtension{extstr("alpha"), extstr("beta")}, nil}, Version{1, 0, 0, []VersionExtension{extstr("beta")}, nil}, -1},
-	{Version{1, 0, 0, []VersionExtension{extstr("beta")}, nil}, Version{1, 0, 0, []VersionExtension{extstr("beta"), extnum(2)}, nil}, -1},
-	{Version{1, 0, 0, []VersionExtension{extstr("beta"), extnum(2)}, nil}, Version{1, 0, 0, []VersionExtension{extstr("beta"), extnum(11)}, nil}, -1},
-	{Version{1, 0, 0, []VersionExtension{extstr("beta"), extnum(11)}, nil}, Version{1, 0, 0, []VersionExtension{extstr("rc"), extnum(1)}, nil}, -1},
-	{Version{1, 0, 0, []VersionExtension{extstr("rc"), extnum(1)}, nil}, Version{1, 0, 0, nil, nil}, -1},
+	{Version{1, 0, 0, nil, nil}, Version{1, 0, 0, []versionExtension{extstr("alpha")}, nil}, 1},
+	{Version{1, 0, 0, []versionExtension{extstr("alpha")}, nil}, Version{1, 0, 0, []versionExtension{extstr("alpha"), extnum(1)}, nil}, -1},
+	{Version{1, 0, 0, []versionExtension{extstr("alpha"), extnum(1)}, nil}, Version{1, 0, 0, []versionExtension{extstr("alpha"), extstr("beta")}, nil}, -1},
+	{Version{1, 0, 0, []versionExtension{extstr("alpha"), extstr("beta")}, nil}, Version{1, 0, 0, []versionExtension{extstr("beta")}, nil}, -1},
+	{Version{1, 0, 0, []versionExtension{extstr("beta")}, nil}, Version{1, 0, 0, []versionExtension{extstr("beta"), extnum(2)}, nil}, -1},
+	{Version{1, 0, 0, []versionExtension{extstr("beta"), extnum(2)}, nil}, Version{1, 0, 0, []versionExtension{extstr("beta"), extnum(11)}, nil}, -1},
+	{Version{1, 0, 0, []versionExtension{extstr("beta"), extnum(11)}, nil}, Version{1, 0, 0, []versionExtension{extstr("rc"), extnum(1)}, nil}, -1},
+	{Version{1, 0, 0, []versionExtension{extstr("rc"), extnum(1)}, nil}, Version{1, 0, 0, nil, nil}, -1},
 
 	// Ignore Build metadata
-	{Version{1, 0, 0, nil, []VersionExtension{{VersionStr: "1"}, {VersionStr: "2"}, {VersionStr: "3"}}}, Version{1, 0, 0, nil, nil}, -1},
+	{Version{1, 0, 0, nil, []versionExtension{{VersionStr: "1"}, {VersionStr: "2"}, {VersionStr: "3"}}}, Version{1, 0, 0, nil, nil}, -1},
 }
 
 func TestCompare(t *testing.T) {
@@ -211,13 +207,13 @@ var wrongformatTests = []wrongformatTest{
 	{nil, "1.1.1-001"},
 	{nil, "1.1.1-beta.01"},
 	{nil, "1.1.1-beta.001"},
-	{&Version{0, 0, 0, []VersionExtension{extstr("!")}, nil}, "0.0.0-!"},
-	{&Version{0, 0, 0, nil, []VersionExtension{{VersionStr: "!"}}}, "0.0.0+!"},
+	{&Version{0, 0, 0, []versionExtension{extstr("!")}, nil}, "0.0.0-!"},
+	{&Version{0, 0, 0, nil, []versionExtension{{VersionStr: "!"}}}, "0.0.0+!"},
 	// empty prversion
-	{&Version{0, 0, 0, []VersionExtension{extstr(""), extstr("alpha")}, nil}, "0.0.0-.alpha"},
+	{&Version{0, 0, 0, []versionExtension{extstr(""), extstr("alpha")}, nil}, "0.0.0-.alpha"},
 	// empty build meta data
-	{&Version{0, 0, 0, []VersionExtension{extstr("alpha")}, []VersionExtension{{VersionStr: ""}}}, "0.0.0-alpha+"},
-	{&Version{0, 0, 0, []VersionExtension{extstr("alpha")}, []VersionExtension{{VersionStr: "test"}, {VersionStr: ""}}}, "0.0.0-alpha+test."},
+	{&Version{0, 0, 0, []versionExtension{extstr("alpha")}, []versionExtension{{VersionStr: ""}}}, "0.0.0-alpha+"},
+	{&Version{0, 0, 0, []versionExtension{extstr("alpha")}, []versionExtension{{VersionStr: "test"}, {VersionStr: ""}}}, "0.0.0-alpha+test."},
 }
 
 func TestWrongFormat(t *testing.T) {
@@ -249,7 +245,7 @@ func TestWrongTolerantFormat(t *testing.T) {
 }
 
 func TestCompareHelper(t *testing.T) {
-	v := Version{1, 0, 0, []VersionExtension{extstr("alpha")}, nil}
+	v := Version{1, 0, 0, []versionExtension{extstr("alpha")}, nil}
 	v1 := Version{1, 0, 0, nil, nil}
 	if !v.EQ(v) {
 		t.Errorf("%q should be equal to %q", v, v)
@@ -345,7 +341,7 @@ func TestIncrements(t *testing.T) {
 }
 
 func TestPreReleaseVersions(t *testing.T) {
-	p1, err := NewVersionExtension("123", "PreRelease", emptyValidation)
+	p1, err := NewPRVersion("123")
 	if !p1.IsNumeric() {
 		t.Errorf("Expected numeric prversion, got %q", p1)
 	}
@@ -355,7 +351,7 @@ func TestPreReleaseVersions(t *testing.T) {
 	if err != nil {
 		t.Errorf("Not expected error %q", err)
 	}
-	p2, err := NewVersionExtension("alpha", "PreRelease", emptyValidation)
+	p2, err := NewPRVersion("alpha")
 	if p2.IsNumeric() {
 		t.Errorf("Expected non-numeric prversion, got %q", p2)
 	}

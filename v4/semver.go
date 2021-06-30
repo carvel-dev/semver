@@ -8,7 +8,7 @@ import (
 )
 
 type versionExtType string
-type validationFunc func(original string, num uint64, isNum bool) error
+type validationFunc func(ext versionExtension) error
 
 const (
 	numbers  string = "0123456789"
@@ -31,8 +31,8 @@ type Version struct {
 	Major uint64
 	Minor uint64
 	Patch uint64
-	Pre   VersionExtensions
-	Build VersionExtensions
+	Pre   versionExtensions
+	Build versionExtensions
 }
 
 // Version to string
@@ -317,7 +317,7 @@ func Parse(s string) (Version, error) {
 
 	// Prerelease
 	for _, prstr := range prerelease {
-		parsedPR, err := NewVersionExtension(prstr, prereleaseType, validatePRLeading0s)
+		parsedPR, err := NewPRVersion(prstr)
 		if err != nil {
 			return Version{}, err
 		}
@@ -326,7 +326,7 @@ func Parse(s string) (Version, error) {
 
 	// Build meta data
 	for _, str := range build {
-		parsedBuildMeta, err := NewVersionExtension(str, buildmetaType, emptyValidation)
+		parsedBuildMeta, err := NewBuildVersion(str)
 		if err != nil {
 			return Version{}, err
 		}
@@ -345,9 +345,17 @@ func MustParse(s string) Version {
 	return v
 }
 
-type VersionExtensions []VersionExtension
+func NewPRVersion(str string) (versionExtension, error) {
+	return newVersionExtension(str, prereleaseType, validatePRLeading0s)
+}
 
-func (ve VersionExtensions) Compare(o VersionExtensions) int {
+func NewBuildVersion(str string) (versionExtension, error) {
+	return newVersionExtension(str, buildmetaType)
+}
+
+type versionExtensions []versionExtension
+
+func (ve versionExtensions) Compare(o versionExtensions) int {
 	if len(ve) == 0 && len(o) == 0 {
 		return 0
 	} else if len(ve) == 0 && len(o) > 0 {
@@ -376,36 +384,43 @@ func (ve VersionExtensions) Compare(o VersionExtensions) int {
 	return 0
 }
 
-type VersionExtension struct {
+type versionExtension struct {
 	VersionStr string
 	VersionNum uint64
 	IsNum      bool
 }
 
-func NewVersionExtension(s string, extType versionExtType, additionalValidation validationFunc) (VersionExtension, error) {
+func newVersionExtension(s string, extType versionExtType, additionalValidations ...validationFunc) (versionExtension, error) {
 	if len(s) == 0 {
-		return VersionExtension{}, fmt.Errorf("%s is empty", extType)
+		return versionExtension{}, fmt.Errorf("%s is empty", extType)
 	}
-	v := VersionExtension{VersionStr: s}
+	v := versionExtension{VersionStr: s}
 	if containsOnly(s, numbers) {
 		num, err := strconv.ParseUint(s, 10, 64)
 
 		// Might never be hit, but just in case
 		if err != nil {
-			return VersionExtension{}, err
+			return versionExtension{}, err
 		}
 		v.VersionNum = num
 		v.IsNum = true
 	} else if containsOnly(s, alphanum) {
 		v.IsNum = false
 	} else {
-		return VersionExtension{}, fmt.Errorf("Invalid character(s) found in %s %q", extType, s)
+		return versionExtension{}, fmt.Errorf("Invalid character(s) found in %s %q", extType, s)
 	}
-	return v, additionalValidation(v.VersionStr, v.VersionNum, v.IsNum)
+
+	for _, fn := range additionalValidations {
+		if err := fn(v); err != nil {
+			return versionExtension{}, err
+		}
+	}
+
+	return v, nil
 }
 
 // IsNumeric checks if this extension is numeric is numeric
-func (v VersionExtension) IsNumeric() bool {
+func (v versionExtension) IsNumeric() bool {
 	return v.IsNum
 }
 
@@ -413,7 +428,7 @@ func (v VersionExtension) IsNumeric() bool {
 // -1 == v is less than o
 // 0 == v is equal to o
 // 1 == v is greater than o
-func (v VersionExtension) Compare(o VersionExtension) int {
+func (v versionExtension) Compare(o versionExtension) int {
 	if v.IsNum && !o.IsNum {
 		return -1
 	} else if !v.IsNum && o.IsNum {
@@ -437,7 +452,7 @@ func (v VersionExtension) Compare(o VersionExtension) int {
 	}
 }
 
-func (v VersionExtension) String() string {
+func (v versionExtension) String() string {
 	if v.IsNum {
 		return strconv.FormatUint(v.VersionNum, 10)
 	}
@@ -454,24 +469,11 @@ func hasLeadingZeroes(s string) bool {
 	return len(s) > 1 && s[0] == '0'
 }
 
-func validatePRLeading0s(original string, num uint64, isNum bool) error {
-	if isNum && hasLeadingZeroes(original) {
-		return fmt.Errorf("Numeric PreRelease version must not contain leading zeroes %q", original)
+func validatePRLeading0s(ext versionExtension) error {
+	if ext.IsNum && hasLeadingZeroes(ext.VersionStr) {
+		return fmt.Errorf("Numeric PreRelease version must not contain leading zeroes %q", ext.VersionStr)
 	}
 	return nil
-}
-
-func emptyValidation(_ string, _ uint64, _ bool) error { return nil }
-
-// NewBuildVersion creates a new valid build version
-func NewBuildVersion(s string) (string, error) {
-	if len(s) == 0 {
-		return "", errors.New("Buildversion is empty")
-	}
-	if !containsOnly(s, alphanum) {
-		return "", fmt.Errorf("Invalid character(s) found in build meta data %q", s)
-	}
-	return s, nil
 }
 
 // FinalizeVersion returns the major, minor and patch number only and discards

@@ -64,13 +64,15 @@ func main() {
 	fmt.Printf("%q is greater than %q: Compare == %d\n", pre3, pre1, pre3.Compare(pre1))
 	fmt.Printf("%q is equal to %q: Compare == %d\n", pre1, pre1, pre1.Compare(pre1))
 
-	fmt.Println("\nValidate versions:")
-	v.Build[0] = "?"
+	// This is now impossible in the implementation of the library
 
-	err = v.Validate()
-	if err != nil {
-		fmt.Printf("Validation failed: %s\n", err)
-	}
+	// fmt.Println("\nValidate versions:")
+	// v.Build[0] = semver.VersionExtension{VersionStr: "?"}
+
+	// err = v.Validate()
+	// if err != nil {
+	// 	fmt.Printf("Validation failed: %s\n", err)
+	// }
 
 	fmt.Println("Create valid build meta data:")
 	b1, _ := semver.NewBuildVersion("build123")
