@@ -1,3 +1,3 @@
-module github.com/k14s/semver
+module github.com/carvel-dev/semver
 
 go 1.12
