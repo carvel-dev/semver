@@ -87,6 +87,8 @@ Ranges can be combined by both AND and OR
 
   - `>1.0.0 <2.0.0 || >3.0.0 !4.2.1` would match `1.2.3`, `1.9.9`, `3.1.1`, but not `4.2.1`, `2.1.1`
 
+Ranges operating on pre release versions can produce counter intuitive results. One might expect the range `>=1.0.0 <2.0.0` to always match versions with major version `1`. However, pre release versions are less than the release version, so `1.0.0-build.1` will not match, while `2.0.0-build.1` will. If a range will operate on pre release versions, be sure to include a pre release value of `0` making the desired range `>=1.0.0-0 <2.0.0-0`. Alternatively, the range `1.x` will match all versions with major version `1`.
+
 Range usage:
 
 ```
