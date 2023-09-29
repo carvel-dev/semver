@@ -148,11 +148,7 @@ func (v Version) Compare(o Version) int {
 		return -1
 	}
 
-	if comp := v.Pre.Compare(o.Pre); comp != 0 {
-		return comp
-	}
-
-	return v.Build.Compare(o.Build)
+	return v.Pre.Compare(o.Pre)
 }
 
 // IncrementPatch increments the patch version

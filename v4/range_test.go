@@ -48,30 +48,31 @@ var (
 	v1 = MustParse("1.2.2")
 	v2 = MustParse("1.2.3")
 	v3 = MustParse("1.2.4")
+	v4 = MustParse("1.2.4+ignoreme")
 )
 
 func testEQ(f comparator) bool {
-	return f(v1, v1) && !f(v1, v2)
+	return f(v1, v1) && !f(v1, v2) && f(v3, v4)
 }
 
 func testNE(f comparator) bool {
-	return !f(v1, v1) && f(v1, v2)
+	return !f(v1, v1) && f(v1, v2) && !f(v3, v4)
 }
 
 func testGT(f comparator) bool {
-	return f(v2, v1) && f(v3, v2) && !f(v1, v2) && !f(v1, v1)
+	return f(v2, v1) && f(v3, v2) && !f(v1, v2) && !f(v1, v1) && !f(v3, v4)
 }
 
 func testGE(f comparator) bool {
-	return f(v2, v1) && f(v3, v2) && !f(v1, v2)
+	return f(v2, v1) && f(v3, v2) && !f(v1, v2) && f(v3, v4)
 }
 
 func testLT(f comparator) bool {
-	return f(v1, v2) && f(v2, v3) && !f(v2, v1) && !f(v1, v1)
+	return f(v1, v2) && f(v2, v3) && !f(v2, v1) && !f(v1, v1) && !f(v3, v4)
 }
 
 func testLE(f comparator) bool {
-	return f(v1, v2) && f(v2, v3) && !f(v2, v1)
+	return f(v1, v2) && f(v2, v3) && !f(v2, v1) && f(v3, v4)
 }
 
 func TestSplitAndTrim(t *testing.T) {
@@ -385,6 +386,7 @@ func TestParseRange(t *testing.T) {
 		{"1.2.3", []tv{
 			{"1.2.2", false},
 			{"1.2.3", true},
+			{"1.2.3+ignoreme", true},
 			{"1.2.4", false},
 		}},
 		{"=1.2.3", []tv{
