@@ -202,6 +202,7 @@ func TestGetWildcardType(t *testing.T) {
 		{"x", majorWildcard},
 		{"1.x", minorWildcard},
 		{"1.2.x", patchWildcard},
+		{"1.2.3-x", noneWildcard},
 		{"fo.o.b.ar", noneWildcard},
 	}
 
@@ -386,6 +387,19 @@ func TestParseRange(t *testing.T) {
 			{"1.2.2", false},
 			{"1.2.3", true},
 			{"1.2.4", false},
+		}},
+		{"1.2.3-x.x", []tv{
+			{"1.2.3-x.y", false},
+			{"1.2.3-x.x", true},
+		}},
+		{"1.2.3+x.x", []tv{
+			{"1.2.3+x.y", false},
+			{"1.2.3+x.x", true},
+		}},
+		{"1.2.3-x.x+x.x", []tv{
+			{"1.2.3-x.x+x.y", false},
+			{"1.2.3-x.y+x.x", false},
+			{"1.2.3-x.x+x.x", true},
 		}},
 		{"=1.2.3", []tv{
 			{"1.2.2", false},
