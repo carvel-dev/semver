@@ -327,12 +327,12 @@ func expandWildcardVersion(parts [][]string) ([][]string, error) {
 	for _, p := range parts {
 		var newParts []string
 		for _, ap := range p {
-			if strings.Contains(ap, "x") {
-				opStr, vStr, err := splitComparatorVersion(ap)
-				if err != nil {
-					return nil, err
-				}
+			opStr, vStr, err := splitComparatorVersion(ap)
+			if err != nil {
+				return nil, err
+			}
 
+			if containsWildcard(ap) {
 				versionWildcardType := getWildcardType(vStr)
 				flatVersion := createVersionFromWildcard(vStr)
 
@@ -379,6 +379,16 @@ func expandWildcardVersion(parts [][]string) ([][]string, error) {
 	}
 
 	return expandedParts, nil
+}
+
+// containsWildcard returns true if there's a wildcard in any of the major, minor or patch components
+func containsWildcard(v string) bool {
+	return strings.Contains(trimIdentifiers(v), ".x")
+}
+
+// trimIdentifiers removes any pre-release and build metadata from a version
+func trimIdentifiers(v string) string {
+  return strings.Split(strings.Split(v, "+")[0], "-")[0]
 }
 
 func parseComparator(s string) comparator {
