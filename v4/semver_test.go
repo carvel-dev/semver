@@ -579,3 +579,35 @@ func BenchmarkCompareAverage(b *testing.B) {
 		compareTests[n%l].v1.Compare((compareTests[n%l].v2))
 	}
 }
+
+func TestEdgeCases_NaturalSortAndMetadata(t *testing.T) {
+	tests := []struct {
+		v1       string
+		v2       string
+		expected int
+		reason   string
+	}{
+		// 1. Metadata Precedence: GA should be higher than RC
+		// Expected -1 because v1.33-rc.2 < v1.33
+		{"3.4.0+v1.33-rc.2", "3.4.0+v1.33", -1, "GA should be higher than RC in metadata"},
+
+		// 2. Natural Sort: .9 should be less than .10
+		// Expected -1 because 9 < 10
+		{"1.2.3+abc.9-fips", "1.2.3+abc.10-fips", -1, "Natural sort: 9 should be less than 10"},
+
+		// 3. Mixed Alphanumeric: abc2 should be less than abc10
+		{"1.0.0+abc2", "1.0.0+abc10", -1, "Natural sort: abc2 should be less than abc10"},
+	}
+
+	for _, tt := range tests {
+		ver1, _ := ParseTolerant(tt.v1)
+		ver2, _ := ParseTolerant(tt.v2)
+
+		res := ver1.Compare(ver2)
+
+		if res != tt.expected {
+			t.Errorf("FAIL [%s]: %s vs %s | Expected %d, Got %d",
+				tt.reason, tt.v1, tt.v2, tt.expected, res)
+		}
+	}
+}
