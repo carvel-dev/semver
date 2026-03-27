@@ -152,12 +152,12 @@ var compareTests = []compareTest{
 	{Version{1, 0, 0, []versionExtension{extstr("rc"), extnum(1)}, nil}, Version{1, 0, 0, nil, nil}, -1},
 
 	// Ignore Build metadata
-	{Version{1, 0, 0, nil, []versionExtension{extnum(1), extnum(2), extnum(3)}}, Version{1, 0, 0, nil, nil}, 1},
-	{Version{1, 0, 0, nil, []versionExtension{extnum(1), extnum(2), extnum(3)}}, Version{1, 0, 0, nil, []versionExtension{extnum(1), extnum(2)}}, 1},
-	{Version{1, 0, 0, nil, []versionExtension{extstr("a")}}, Version{1, 0, 0, nil, []versionExtension{extnum(1)}}, 1},
+	{Version{1, 0, 0, nil, []versionExtension{extnum(1), extnum(2), extnum(3)}}, Version{1, 0, 0, nil, nil}, 0},
+	{Version{1, 0, 0, nil, []versionExtension{extnum(1), extnum(2), extnum(3)}}, Version{1, 0, 0, nil, []versionExtension{extnum(1), extnum(2)}}, 0},
+	{Version{1, 0, 0, nil, []versionExtension{extstr("a")}}, Version{1, 0, 0, nil, []versionExtension{extnum(1)}}, 0},
 	{Version{1, 0, 0, nil, []versionExtension{extstr("a")}}, Version{1, 0, 0, nil, []versionExtension{extstr("a")}}, 0},
-	{Version{1, 0, 0, nil, []versionExtension{extnum(1)}}, Version{1, 0, 0, nil, []versionExtension{extnum(2)}}, -1},
-	{Version{1, 0, 0, []versionExtension{extnum(2)}, []versionExtension{extnum(2)}}, Version{1, 0, 0, []versionExtension{extnum(3)}, []versionExtension{extnum(1)}}, -1},
+	{Version{1, 0, 0, nil, []versionExtension{extnum(1)}}, Version{1, 0, 0, nil, []versionExtension{extnum(2)}}, 0},
+	{Version{1, 0, 0, []versionExtension{extnum(2)}, []versionExtension{extnum(2)}}, Version{1, 0, 0, []versionExtension{extnum(2)}, []versionExtension{extnum(1)}}, 0},
 }
 
 func TestCompare(t *testing.T) {
