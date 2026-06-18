@@ -24,5 +24,5 @@ func (s Versions) Less(i, j int) bool {
 
 // Sort sorts a slice of versions
 func Sort(versions []Version) {
-	sort.Sort(Versions(versions))
+	sort.Stable(Versions(versions))
 }
